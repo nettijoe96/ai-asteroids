@@ -12,7 +12,8 @@ class Agent(object):
 
     # You should modify this function
     def act(self, observation, reward, done):
-        return self.action_space.sample()
+        #return self.action_space.sample()
+        return 1
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
@@ -45,12 +46,18 @@ if __name__ == '__main__':
     special_data = {}
     special_data['ale.lives'] = 3
     ob = env.reset()
+    
+    actlist = [3, 9]
+    i = 0
+
     while not done:
         
         action = agent.act(ob, reward, done)
-        ob, reward, done, x = env.step(action)
+        ob, reward, done, x = env.step(actlist[i])
+        i+=1
+        i = i % len(actlist) 
         #pdb.set_trace()
-        time.sleep(0.1)
+        #time.sleep(0.1)
         score += reward
         env.render()
      
