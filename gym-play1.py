@@ -3,16 +3,150 @@ import sys
 import pdb
 import gym
 import time
+import math
 from gym import wrappers, logger
 
+
+
+shipRGB = [214,214,214]
+#todo: ships bullet colors
+scoreRGB = [180, 50, 50]
+emptyRGB = [0, 0, 0]
+
 class Agent(object):
-    """The world's simplest agent!"""
+    starting_x = 56           # starting (x,y) coor of center of spaceship
+    starting_y = 155          # starting (x,y) coor of center of spaceship
+    starting_angle = 90       # starting angle from vertical x-axis
+    rotation_degree = 90/4    # each rotation action is 90 degrees divded by 4
+
+ 
+    fire = 1
+    clockwise = 3
+    counterclockwise = 4
+
+
     def __init__(self, action_space):
         self.action_space = action_space
+        self.x = self.starting_x
+        self.y = self.starting_y
+        self.angle = self.starting_angle
 
     # You should modify this function
     def act(self, observation, reward, done):
-        return self.action_space.sample()
+        nearestA = self.findNearestAsteroid(observation)
+        ax = nearestA[0] - self.x  # spaceship at origin
+        print("ax", ax)
+        ay = nearestA[1] - self.y  # spaceship at origin
+        print("ay", ay)
+        if(ay == 0): return self.fire  #TODO: we have to deal with ay = 0 correctly
+        a_angle = (180 * math.atan(ax/ay)) / math.pi 
+
+        if (ax > 0 and ay > 0):  # the first quadrant
+            print("first")
+            pass
+        elif (ax < 0 and ay > 0):
+            print("second")
+            a_angle = (a_angle * -1) + 90
+        elif (ax < 0 and ay < 0):
+            print("third")
+            a_angle = a_angle + 180
+        elif (ax > 0 and ay < 0):
+            print("fourth")
+            a_angle = (a_angle * -1) + 270
+
+        print("ast angle", a_angle)
+        print("ship angle", self.angle)
+        if (math.fabs((a_angle - self.angle)) < self.rotation_degree):
+            return self.fire  # fire when we have to turn less than rotation angle to get a "perfect shot"
+        else:
+            if ((self.angle - a_angle) < 0):
+                # move counterclockwise
+                self.angle += self.rotation_degree
+                return self.counterclockwise
+            else:
+                self.angle -= self.rotation_degree
+                return self.clockwise
+
+   
+    def findNearestAsteroid(self, ob):   #if there are no asteroids this will stall. run the while for dist from center + center to diagonal
+        sideL = 1
+        x = self.x
+        y = self.y
+        while True:
+            isA = False
+            
+            tempx = x
+            tempy = y
+            for i in range(0, sideL):   #upper left corner; move right
+                tempx += 1
+                if tempx > 159 or tempy > 209 or tempx < 0 or tempy < 0:
+                    break
+                isA = isAsteroid(ob[tempy][tempx])
+                if isA:
+                    return (tempx, tempy)
+         
+            tempx = x
+            tempy = y
+            for i in range(0, sideL):   #upper left corner; move down
+                tempy += 1
+                if tempx > 159 or tempy > 209 or tempx < 0 or tempy < 0:
+                    break
+                isA = isAsteroid(ob[tempy][tempx])
+                if isA:
+                    return (tempx, tempy)
+
+            tempx = x + sideL
+            tempy = y + sideL
+      
+            for i in range(0, sideL):   #lower right corner; move left
+                tempx -= 1
+                if tempx > 159 or tempy > 209 or tempx < 0 or tempy < 0:
+                    break
+                isA = isAsteroid(ob[tempy][tempx])
+                if isA:
+                    return (tempx, tempy)
+           
+            tempx = x + sideL
+            tempy = y + sideL
+            for i in range(0, sideL):   #lower right corner; move up
+                tempy -= 1
+                if tempx > 159 or tempy > 209 or tempx < 0 or tempy < 0:
+                    break
+                isA = isAsteroid(ob[tempy][tempx])
+                if isA:
+                    return (tempx, tempy)
+             
+            if x > 0:
+                x -= 1
+            if y > 0:
+                y -= 1
+
+            sideL += 2
+ 
+
+
+    # return angle from x-axis of the ship, and return (x,y) of either the center or the node
+    def findShip(self, ob):
+       for x in range(0, len(ob)):
+           x = ob[x]
+           for y in range(0, len(x)):
+               pixel = x[y]
+               if compageRGB(shipRBG, pixel):
+                   pass
+
+
+
+
+
+
+def isAsteroid(pixel):
+    return (not compareRGB(shipRGB, pixel)) and (not compareRGB(scoreRGB, pixel)) and (not compareRGB(emptyRGB, pixel)) #TODO: add blue bullet 
+
+
+
+def compareRGB(pixel1, pixel2):
+    return pixel1[0] == pixel2[0] and pixel1[1] == pixel2[1] and pixel1[2] == pixel2[2]
+
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
@@ -50,10 +184,10 @@ if __name__ == '__main__':
         action = agent.act(ob, reward, done)
         ob, reward, done, x = env.step(action)
         #pdb.set_trace()
-        time.sleep(0.1)
+        #time.sleep(.5)
         score += reward
         env.render()
      
     # Close the env and write monitor result info to disk
-    print ("Your score: %d" % score)
+    print("Your score: %d" % score)
     env.close()
