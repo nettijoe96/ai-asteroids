@@ -21,6 +21,7 @@ class Agent(object):
 
  
     fire = 1
+    thrust = 2
     clockwise = 3
     counterclockwise = 4
 
@@ -56,18 +57,18 @@ class Agent(object):
 
         print("ast angle", a_angle)
         print("ship angle", self.angle)
-        if (math.fabs((a_angle - self.angle)) < self.rotation_degree):
-            return self.fire  # fire when we have to turn less than rotation angle to get a "perfect shot"
+        
+  
+        if(triangulardDistance(ax, ay) > 5): 
+          shootNearestAstroid()
         else:
-            if ((self.angle - a_angle) < 0):
-                # move counterclockwise
-                self.angle += self.rotation_degree
-                return self.counterclockwise
-            else:
-                self.angle -= self.rotation_degree
-                return self.clockwise
-
-   
+          
+  
+    """
+    Returns the x and y coordinates of the nearest edge of an asteroid 
+    (where diagonal traversal of a pixel is equal to cardinal traversal 
+    of a pixel)
+    """
     def findNearestAsteroid(self, ob):   #if there are no asteroids this will stall. run the while for dist from center + center to diagonal
         sideL = 1
         x = self.x
@@ -133,11 +134,29 @@ class Agent(object):
                pixel = x[y]
                if compageRGB(shipRBG, pixel):
                    pass
-
-
-
-
-
+                   
+    """
+    If the ship is aligned with the astroid, fire. If the ship is not 
+    aligned with astroid, rotate the ship towards the astroid.
+    """
+    def shootNearestAstroid():
+      if (math.fabs((a_angle - self.angle)) < self.rotation_degree):
+            return self.fire  # fire when we have to turn less than rotation angle to get a "perfect shot"
+        else:
+            if ((self.angle - a_angle) < 0):
+                # move counterclockwise
+                self.angle += self.rotation_degree
+                return self.counterclockwise
+            else:
+                self.angle -= self.rotation_degree
+                return self.clockwise
+                
+    def escape():
+      if(a_angle <= 90):
+        shootNearestAstroid()
+      else:
+        return self.thrust
+      
 
 def isAsteroid(pixel):
     return (not compareRGB(shipRGB, pixel)) and (not compareRGB(scoreRGB, pixel)) and (not compareRGB(emptyRGB, pixel)) #TODO: add blue bullet 
@@ -146,6 +165,10 @@ def isAsteroid(pixel):
 
 def compareRGB(pixel1, pixel2):
     return pixel1[0] == pixel2[0] and pixel1[1] == pixel2[1] and pixel1[2] == pixel2[2]
+    
+
+def triangulardDistance(x_distance, y_distance)
+    return math.sqrt(x_distance**2 + y_distance**2)
 
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
