@@ -18,11 +18,12 @@ class Agent(object):
     starting_y = 155          # starting (x,y) coor of center of spaceship
     starting_angle = 90       # starting angle from vertical x-axis
     rotation_degree = 90/4    # each rotation action is 90 degrees divded by 4
-
+    lastAction = 0
  
     fire = 1
     clockwise = 3
     counterclockwise = 4
+    clockwiseFire = 9
 
 
     def __init__(self, action_space):
@@ -30,6 +31,7 @@ class Agent(object):
         self.x = self.starting_x
         self.y = self.starting_y
         self.angle = self.starting_angle
+        self.far = 30
 
     # You should modify this function
     def act(self, observation, reward, done):
@@ -40,32 +42,51 @@ class Agent(object):
         print("ay", ay)
         if(ay == 0): return self.fire  #TODO: we have to deal with ay = 0 correctly
         a_angle = (180 * math.atan(ax/ay)) / math.pi 
-
-        if (ax > 0 and ay > 0):  # the first quadrant
-            print("first")
-            pass
-        elif (ax < 0 and ay > 0):
-            print("second")
-            a_angle = (a_angle * -1) + 90
-        elif (ax < 0 and ay < 0):
-            print("third")
-            a_angle = a_angle + 180
-        elif (ax > 0 and ay < 0):
-            print("fourth")
-            a_angle = (a_angle * -1) + 270
-
-        print("ast angle", a_angle)
-        print("ship angle", self.angle)
-        if (math.fabs((a_angle - self.angle)) < self.rotation_degree):
-            return self.fire  # fire when we have to turn less than rotation angle to get a "perfect shot"
-        else:
-            if ((self.angle - a_angle) < 0):
-                # move counterclockwise
-                self.angle += self.rotation_degree
-                return self.counterclockwise
+        dist = math.sqrt(ax**2 + ay**2)
+        print("dist", dist)
+        if(dist > self.far):           #if closest asteroid is far away we just spinshoot
+            a = self.lastAction
+            if a == self.clockwiseFire or a == self.fire:
+                a = self.clockwise
             else:
-                self.angle -= self.rotation_degree
-                return self.clockwise
+                a = self.clockwiseFire
+            self.lastAction = a
+            return a
+        else:
+            if (ax > 0 and ay > 0):  # the first quadrant
+                print("first")
+                pass
+            elif (ax < 0 and ay > 0):
+                print("second")
+                a_angle = (a_angle * -1) + 90
+            elif (ax < 0 and ay < 0):
+                print("third")
+                a_angle = a_angle + 180
+            elif (ax > 0 and ay < 0):
+                print("fourth")
+                a_angle = (a_angle * -1) + 270
+    
+            print("ast angle", a_angle)
+            print("ship angle", self.angle)
+            if (math.fabs((a_angle - self.angle)) < self.rotation_degree):
+                print("fire")
+                if self.lastAction == self.fire:
+                    self.lastAction = 0
+                    return 0
+                self.lastAction = self.fire
+                return self.fire  # fire when we have to turn less than rotation angle to get a "perfect shot"
+            else:
+                if ((self.angle - a_angle) < 0):
+                    # move counterclockwise
+                    print("counterclockwise")
+                    self.angle += self.rotation_degree
+                    self.lastAction = self.counterclockwise
+                    return self.counterclockwise
+                else:
+                    print("clockwise")
+                    self.angle -= self.rotation_degree
+                    self.lastAction = self.clockwise
+                    return self.clockwise
 
    
     def findNearestAsteroid(self, ob):   #if there are no asteroids this will stall. run the while for dist from center + center to diagonal
