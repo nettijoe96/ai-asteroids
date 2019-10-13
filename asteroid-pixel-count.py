@@ -7,6 +7,8 @@ import sys
 import pdb
 import gym
 import time
+import datetime
+from datatools import DataFile 
 gymplay = __import__("gym-play1")
 from gym import wrappers, logger
 
@@ -15,14 +17,16 @@ class Agent(object):
     def __init__(self, action_space):
         self.action_space = action_space
         self.frame_count = 0
+        timestamp = datetime.datetime.today().strftime("asteroid count %y%m%d %H%M%S.txt")
+        self.file = DataFile(timestamp)
 
     # You should modify this function
     def act(self, observation, reward, done):
         self.frame_count += 1
         
-        count, pixels, locations = self.countAsteroidPixels(observation)
+        pixel_count, pixels, locations = self.countAsteroidPixels(observation)
         
-        self.save_count_to_file(count, pixels, locations)
+        self.file.save_count_to_file(self.frame_count, pixel_count, pixels, locations)
         
         return 0
         
@@ -40,44 +44,7 @@ class Agent(object):
                     asteroid_pixel_locations.append((x,y))
         
         return asteroid_pixel_count, asteroid_pixels, asteroid_pixel_locations
-        
-    def save_count_to_file(self, count):
-        with open("frame_pixel_count.txt", "a") as count_file:
-            count_file.write("frame: {:3} count: {}\n".format(self.frame_count, count))
-            
-    def save_count_to_file(self, count, pixels, locations):
-        
-        full_pixel_list = list()
-        
-        for i in range(0,len(locations)):
-            x = locations[i][0]
-            y = locations[i][1]
-            r = pixels[i][0]
-            g = pixels[i][1]
-            b = pixels[i][2]
-            
-            current_pixel = Pixel(x,y,r,g,b)
-            
-            full_pixel_list.append(current_pixel)
-        
-        with open("frame_pixel_count.txt", "a") as count_file:
-            count_file.write("frame: {:3} count: {}\n".format(self.frame_count, count))
-            for pixel in full_pixel_list:
-                count_file.write("\t{}\n".format(pixel.str()))
-      
-      
-class Pixel:
-    
-    def __init__(self, x, y, r, g, b):
-        self.x = x
-        self.y = y
-        self.r = r
-        self.g = g 
-        self.b = b
-        
-    def str(self):
-        return "Location: ({:3},{:3})\tRGB: ({:3},{:3},{:3})".format(self.x,self.y,self.r,self.g,self.b)
-
+ 
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
