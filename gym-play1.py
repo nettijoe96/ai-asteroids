@@ -35,7 +35,7 @@ class Agent(object):
 
     # You should modify this function
     def act(self, observation, reward, done):
-        nearestA = self.findNearestAsteroid(observation)
+        nearestA, minDist = self.findNearestAsteroid(observation)
         ax = nearestA[0] - self.x  # spaceship at origin
         print("ax", ax)
         ay = nearestA[1] - self.y  # spaceship at origin
@@ -89,61 +89,25 @@ class Agent(object):
                     return self.clockwise
 
    
-    def findNearestAsteroid(self, ob):   #if there are no asteroids this will stall. run the while for dist from center + center to diagonal
-        sideL = 1
-        x = self.x
-        y = self.y
-        while True:
-            isA = False
-            
-            tempx = x
-            tempy = y
-            for i in range(0, sideL):   #upper left corner; move right
-                tempx += 1
-                if tempx > 159 or tempy > 209 or tempx < 0 or tempy < 0:
-                    break
-                isA = isAsteroid(ob[tempy][tempx])
-                if isA:
-                    return (tempx, tempy)
-         
-            tempx = x
-            tempy = y
-            for i in range(0, sideL):   #upper left corner; move down
-                tempy += 1
-                if tempx > 159 or tempy > 209 or tempx < 0 or tempy < 0:
-                    break
-                isA = isAsteroid(ob[tempy][tempx])
-                if isA:
-                    return (tempx, tempy)
+    def findNearestAsteroid(self, ob):
+        minDist = triangularDistance(160, 210)
+        shipx = self.x
+        shipy = self.y
+        ax = None
+        ay = None
 
-            tempx = x + sideL
-            tempy = y + sideL
-      
-            for i in range(0, sideL):   #lower right corner; move left
-                tempx -= 1
-                if tempx > 159 or tempy > 209 or tempx < 0 or tempy < 0:
-                    break
-                isA = isAsteroid(ob[tempy][tempx])
-                if isA:
-                    return (tempx, tempy)
-           
-            tempx = x + sideL
-            tempy = y + sideL
-            for i in range(0, sideL):   #lower right corner; move up
-                tempy -= 1
-                if tempx > 159 or tempy > 209 or tempx < 0 or tempy < 0:
-                    break
-                isA = isAsteroid(ob[tempy][tempx])
-                if isA:
-                    return (tempx, tempy)
-             
-            if x > 0:
-                x -= 1
-            if y > 0:
-                y -= 1
+        for y in range(0, len(ob[0])):
+            for x in range(0, len(ob[1])):
+                pixel = ob[y][x]
+                if isAsteroid(pixel):
+                    dist = triangularDistance(self.x-x, self.y-y) 
+                    if dist < minDist:
+                       minDist = dist
+                       ax = x
+                       ay = y 
+        return (ax, ay), minDist
 
-            sideL += 2
- 
+
 
 
     # return angle from x-axis of the ship, and return (x,y) of either the center or the node
@@ -158,6 +122,8 @@ class Agent(object):
 
 
 
+def triangularDistance(x_distance, y_distance):
+    return math.sqrt(x_distance**2 + y_distance**2)
 
 
 def isAsteroid(pixel):
