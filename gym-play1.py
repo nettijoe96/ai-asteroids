@@ -97,14 +97,24 @@ class Agent(object):
         ay = None
 
         for y in range(0, len(ob[0])):
+            rowMin = None
             for x in range(0, len(ob[1])):
                 pixel = ob[y][x]
                 if isAsteroid(pixel):
                     dist = triangularDistance(self.x-x, self.y-y) 
                     if dist < minDist:
-                       minDist = dist
-                       ax = x
-                       ay = y 
+                        minDist = dist
+                        ax = x
+                        ay = y 
+                    
+                    #an optimization where if the dist begins to rise on the row, we break
+                    if rowMin == None or dist < rowMin:
+                        rowMin = dist
+                    elif rowMin == dist: 
+                        pass
+                    else: 
+                        break 
+                   
         return (ax, ay), minDist
 
 
