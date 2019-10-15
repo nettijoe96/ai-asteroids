@@ -8,9 +8,13 @@ from gym import wrappers, logger
 
 
 
-shipRGB = [214,214,214]
+shipRGB = [240,128,128]
 #todo: ships bullet colors
-scoreRGB = [180, 50, 50]
+scoreRGB1 = [184, 50, 50]
+scoreRGB2 = [180, 50, 50]
+scoreColors = list()
+scoreColors.append(scoreRGB1)
+scoreColors.append(scoreRGB2)
 emptyRGB = [0, 0, 0]
 
 class Agent(object):
@@ -23,6 +27,8 @@ class Agent(object):
     start = True
     prevNearestA = None
     prevMinDist = None
+    
+
 
     far = 20  
     fire = 1
@@ -152,13 +158,20 @@ def triangularDistance(x_distance, y_distance):
 
 
 def isAsteroid(pixel):
-    return (not compareRGB(shipRGB, pixel)) and (not compareRGB(scoreRGB, pixel)) and (not compareRGB(emptyRGB, pixel)) #TODO: add blue bullet 
+    return (not compareRGB(shipRGB, pixel)) and (not containsRGB(scoreColors, pixel)) and (not compareRGB(emptyRGB, pixel)) #TODO: add blue bullet 
 
 
 
 def compareRGB(pixel1, pixel2):
     return pixel1[0] == pixel2[0] and pixel1[1] == pixel2[1] and pixel1[2] == pixel2[2]
 
+
+def containsRGB(pixel_list, pixel1):
+    for pixel in pixel_list:
+        if(compareRGB(pixel1, pixel)):
+            return True
+            
+    return False
 
 
 def aNum(ob):
@@ -216,3 +229,4 @@ if __name__ == '__main__':
     # Close the env and write monitor result info to disk
     print("Your score: %d" % score)
     env.close()
+           
