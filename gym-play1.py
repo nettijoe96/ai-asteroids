@@ -30,7 +30,7 @@ class Agent(object):
     
 
 
-    far = 20  
+    far = 200
     fire = 1
     clockwise = 3
     counterclockwise = 4
@@ -46,17 +46,20 @@ class Agent(object):
 
     # You should modify this function
     def act(self, observation, reward, done):
+        #print(self.angle)
         if self.start == True: 
             nearestA, minDist = self.findNearestAsteroid(observation)
             decision = self.makeDecision(nearestA, minDist)            
             self.start = False
         elif self.shipScreen == True:
-            decision = self.makeDecision(self.prevNearestA, self.minDist)            
-            shipScreen = False
+            decision = self.makeDecision(self.prevNearestA, self.prevMinDist)            
+            self.shipScreen = False
+            time.sleep(.01)
         else: 
             nearestA, minDist = self.findNearestAsteroid(observation)
+            print(nearestA)
             decision = self.makeDecision(nearestA, minDist)            
-            shipScreen = True 
+            self.shipScreen = True 
             self.prevMinDist = minDist
             self.prevNearestA = nearestA
              
@@ -86,25 +89,42 @@ class Agent(object):
             self.stepsAwayFromRecharged -= 1
 
 
+    def findAngle(self, ax, ay):
+        if (ax > 0 and ay > 0):  # the first quadrant
+            a_angle = (180 * math.atan(ay/ax)) / math.pi 
+        elif (ax < 0 and ay > 0):
+            a_angle = ((180 * math.atan(ax/ay)) / math.pi ) + 90
+        elif (ax < 0 and ay < 0):
+            a_angle = ((180 * math.atan(ay/ax)) / math.pi ) + 180
+        elif (ax > 0 and ay < 0):
+            a_angle = ((180 * math.atan(ax/ay)) / math.pi ) + 270
+        elif (ax > 0 and ay == 0):
+            a_angle = 0
+        elif (ax == 0 and ay > 0):
+            a_angle = 90
+        elif (ax < 0 and ay == 0):
+            a_angle = 180
+        elif (ax == 0 and ay < 0):
+            a_angle = 270
+        else:
+            raise Exception("bug in findAngle function")
+
+        print(a_angle)
+        return a_angle
+
+
+
     def makeDecision(self, nearestA, minDist):
         ax = nearestA[0] - self.x  # spaceship at origin
         ay = nearestA[1] - self.y  # spaceship at origin
         if(ay == 0): return self.fire  #TODO: we have to deal with ay = 0 correctly
-        a_angle = (180 * math.atan(ax/ay)) / math.pi 
         if(minDist > self.far):           #if closest asteroid is far away we just spinshoot
             if self.isRecharged():
                 return self.clockwiseFire
             else:
                 return self.clockwise
         else:
-            if (ax > 0 and ay > 0):  # the first quadrant
-                pass
-            elif (ax < 0 and ay > 0):
-                a_angle = (a_angle * -1) + 90
-            elif (ax < 0 and ay < 0):
-                a_angle = a_angle + 180
-            elif (ax > 0 and ay < 0):
-                a_angle = (a_angle * -1) + 270
+            a_angle = self.findAngle(ax, ay)
     
             if (math.fabs((a_angle - self.angle)) < self.rotation_degree):
                 if self.isRecharged():
@@ -122,7 +142,7 @@ class Agent(object):
 
 
 
-   
+    
     def findNearestAsteroid(self, ob):
         minDist = triangularDistance(160, 210)
         shipx = self.x
