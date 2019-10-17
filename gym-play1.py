@@ -57,13 +57,14 @@ class Agent(object):
         elif self.round % 4 == 0 or self.round % 4 == 2:      
             #print("ship angle:", self.angle) 
             if isShipDead(ob):         #if there is no ship, reset angle to starting.      
+                print("\n DEAD SHIP \n")
                 self.resetShip()
                 shipDead = True
             else:
                 shipDead = False
 
             action = noop
-            time.sleep(.1)
+            time.sleep(.5)
         elif self.round % 4 == 1:
             if self.deadShip:          #if ship is dead, we cannot make a decision
                 action = noop
@@ -105,11 +106,10 @@ class Agent(object):
 
 
     def makeDecision(self, nearestA, minDist):
+        print(nearestA)
         ax = nearestA[0] - self.x  # spaceship at origin
-        ay = nearestA[1] - self.y  # spaceship at origin
-        if(ay == 0): 
-            return fire 
-        elif(minDist > self.far):           #if closest asteroid is far away we just spinshoot
+        ay = -1 * (nearestA[1] - self.y)  # spaceship at origin
+        if(minDist > self.far):           #if closest asteroid is far away we just spinshoot
             if self.lastAction != clockwiseFire and self.lastAction != fire:
                 return clockwiseFire
             else:
@@ -133,8 +133,9 @@ class Agent(object):
         angle += adjustment
         if angle < 0:
             angle += 360
-        if angle > 360:
+        elif angle >= 360:
             angle = angle % 360
+
         self.angle = angle
 
     
