@@ -29,7 +29,7 @@ clockwise = 3
 counterclockwise = 4
 clockwiseFire = 9
 counterclockwiseFire = 10
-fireList = [1, 9, 10]
+fireList = [fire, clockwiseFire, counterclockwiseFire]
 
 
 
@@ -61,6 +61,9 @@ class Agent(object):
                 self.resetShip()
                 self.deadShip = True
             else:
+                coor = findShip(ob)
+                self.x = coor[0]
+                self.y = coor[1]
                 self.deadShip = False
 
             action = noop
