@@ -73,6 +73,7 @@ class Agent(object):
     def spinAim(self, nearestA, minDist):
         ax = nearestA[0] - self.state.x  # spaceship at origin
         ay = -1 * (nearestA[1] - self.state.y)  # spaceship at origin. -1 is needed otherwise asteroid is mirrored across x axis
+        if ay == 0: return fire
         if (minDist > self.spinDist):  # if closest asteroid is far away we just spinshoot
             if self.state.lastAction != clockwiseFire and self.state.lastAction != fire:
                 return clockwiseFire
