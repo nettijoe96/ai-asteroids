@@ -13,7 +13,6 @@ from gym import wrappers, logger
 shipRGB = [[240,128,128]]
 bulletCollors = [[117, 181, 239]]
 
-#todo: ships bullet colors
 scoreRGB1 = [184, 50, 50]
 scoreRGB2 = [180, 50, 50]
 scoreColors = list()
@@ -25,6 +24,7 @@ emptyRGB = [0, 0, 0]
 #actions
 noop = 0
 fire = 1
+dodge = 2
 clockwise = 3
 counterclockwise = 4
 clockwiseFire = 9
@@ -43,9 +43,10 @@ class Agent(object):
     round = 0
     prevNearestA = None
     prevMinDist = None
-    deadShip = False 
+    deadShip = False
 
-    far = 100
+    spinDist = 100
+    dodgeDist = 10
 
     def __init__(self, action_space):
         self.resetShip()
@@ -57,14 +58,13 @@ class Agent(object):
         elif self.round % 4 == 0 or self.round % 4 == 2:      
             #print("ship angle:", self.angle) 
             if isShipDead(ob):         #if there is no ship, reset angle to starting.      
-                print("\n DEAD SHIP \n")
                 self.resetShip()
-                shipDead = True
+                self.deadShip = True
             else:
-                shipDead = False
+                self.deadShip = False
 
             action = noop
-            time.sleep(.5)
+            time.sleep(.1)
         elif self.round % 4 == 1:
             if self.deadShip:          #if ship is dead, we cannot make a decision
                 action = noop
@@ -74,6 +74,8 @@ class Agent(object):
             self.lastAction = action
         elif self.round % 4 == 3:
             action = noop
+        else:
+            raise Exception("a case is not covered in act function")
 
 
         self.round += 1
@@ -109,7 +111,7 @@ class Agent(object):
         print(nearestA)
         ax = nearestA[0] - self.x  # spaceship at origin
         ay = -1 * (nearestA[1] - self.y)  # spaceship at origin
-        if(minDist > self.far):           #if closest asteroid is far away we just spinshoot
+        if(minDist > self.spinDist):           #if closest asteroid is far away we just spinshoot
             if self.lastAction != clockwiseFire and self.lastAction != fire:
                 return clockwiseFire
             else:
@@ -121,6 +123,8 @@ class Agent(object):
             print("ship angle:", self.angle) 
             if (math.fabs(diff) < self.rotation_degree):
                     return fire  # fire when we have to turn less than rotation angle to get a "perfect shot"
+            elif minDist < self.dodgeDist:
+                return dodge
             else:
                 if diff < 0:
                     return clockwise
@@ -175,7 +179,7 @@ def findAngleDiff(ship, ast):
     elif ship < ast:
         counterclockwiseAngle = ast - ship
         clockwiseAngle = 360 - counterclockwiseAngle
-    elif ship == ast:
+    else:
         counterclockwiseAngle = 0
         clockwiseAngle = 0
 
