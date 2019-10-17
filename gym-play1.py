@@ -63,7 +63,7 @@ class Agent(object):
                 self.deadShip = False
 
             action = noop
-            time.sleep(.5)
+            time.sleep(.1)
         elif self.round % 4 == 1:
             if self.deadShip:          #if ship is dead, we cannot make a decision
                 action = noop
@@ -110,6 +110,7 @@ class Agent(object):
         print(nearestA)
         ax = nearestA[0] - self.x  # spaceship at origin
         ay = -1 * (nearestA[1] - self.y)  # spaceship at origin. -1 is needed otherwise asteroid is mirrored across x axis
+        if ay == 0: return fire
         if(minDist > self.spinDist):           #if closest asteroid is far away we just spinshoot
             if self.lastAction != clockwiseFire and self.lastAction != fire:
                 return clockwiseFire
