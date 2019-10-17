@@ -55,7 +55,7 @@ class Agent(object):
         if self.round == 0:            #there are 2 astroid-only frames in a row when game begins
             action = noop
         elif self.round % 4 == 0 or self.round % 4 == 2:      
-            print("ship angle:", self.angle) 
+            #print("ship angle:", self.angle) 
             if isShipDead(ob):         #if there is no ship, reset angle to starting.      
                 self.resetShip()
                 shipDead = True
@@ -116,14 +116,16 @@ class Agent(object):
                 return clockwise
         else:
             a_angle = findAngle(ax, ay)
-            #print("asteroid angle:", a_angle)
-            if (math.fabs((a_angle - self.angle)) < self.rotation_degree):
+            diff = findAngleDiff(self.angle, a_angle)
+            print("asteroid angle:", a_angle)
+            print("ship angle:", self.angle) 
+            if (math.fabs(diff) < self.rotation_degree):
                     return fire  # fire when we have to turn less than rotation angle to get a "perfect shot"
             else:
-                if ((self.angle - a_angle) < 0):
-                    return counterclockwise
-                else:
+                if diff < 0:
                     return clockwise
+                else:
+                    return counterclockwise
 
 
     def adjustAngle(self, adjustment):
@@ -152,6 +154,7 @@ class Agent(object):
                         ax = x
                         ay = y 
                     
+                    """
                     #an optimization where if the dist begins to rise on the row, we break
                     if rowMin == None or dist < rowMin:
                         rowMin = dist
@@ -159,8 +162,46 @@ class Agent(object):
                         pass
                     else: 
                         break 
-                   
+                    """ 
         return (ax, ay), minDist
+
+
+
+def findAngleDiff(ship, ast):
+    if ship > ast:
+        clockwiseAngle = ship - ast
+        counterclockwiseAngle = 360 - clockwiseAngle
+    elif ship < ast:
+        counterclockwiseAngle = ast - ship
+        clockwiseAngle = 360 - counterclockwiseAngle
+    elif ship == ast:
+        counterclockwiseAngle = 0
+        clockwiseAngle = 0
+
+    if clockwiseAngle < counterclockwiseAngle:
+        return -1 * clockwiseAngle
+    elif clockwiseAngle > counterclockwiseAngle:
+        return counterclockwiseAngle
+    elif clockwiseAngle == counterclockwiseAngle:
+        return 0 
+
+
+def testAngle():
+    s = 45
+    a = 300
+    print(findAngleDiff(s, a))  # supposed to be -105
+    s = 180
+    a = 180
+    print(findAngleDiff(s, a))  # 0
+    s = 300
+    a = 45 
+    print(findAngleDiff(s, a))  # 105
+    s = 300
+    a = 270
+    print(findAngleDiff(s, a))  # -30
+    s = 0
+    a = 90
+    print(findAngleDiff(s, a))  # 90
 
 
 
@@ -237,7 +278,7 @@ def findAngle(ax, ay):
 
 
 def triangularDistance(x_distance, y_distance):
-    return math.sqrt(x_distance**2 + y_distance**2)
+    return math.sqrt((x_distance**2) + (y_distance**2))
 
 
 def isAsteroid(pixel):
@@ -272,6 +313,10 @@ def aNum(ob):
     if aCount == 2:
         print(lst)
     return aCount
+
+
+
+testAngle()
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
