@@ -21,6 +21,18 @@ scoreColors.append(scoreRGB1)
 scoreColors.append(scoreRGB2)
 emptyRGB = [0, 0, 0]
 
+
+#actions
+noop = 0
+fire = 1
+clockwise = 3
+counterclockwise = 4
+clockwiseFire = 9
+counterclockwiseFire = 10
+fireList = [1, 9, 10]
+
+
+
 class Agent(object):
     starting_x = 85           # starting (x,y) coor of center of spaceship
     starting_y = 105          # starting (x,y) coor of center of spaceship
@@ -31,155 +43,87 @@ class Agent(object):
     round = 0
     prevNearestA = None
     prevMinDist = None
-    
+    deadShip = False 
 
     far = 100
-    fire = 1
-    clockwise = 3
-    counterclockwise = 4
-    clockwiseFire = 9
-    fireList = [1, 9, 10]
 
     def __init__(self, action_space):
-        self.action_space = action_space
+        self.resetShip()
+
+    # You should modify this function
+    def act(self, ob, reward, done):
+        if self.round == 0:            #there are 2 astroid-only frames in a row when game begins
+            action = noop
+        elif self.round % 4 == 0 or self.round % 4 == 2:      
+            print("ship angle:", self.angle) 
+            if isShipDead(ob):         #if there is no ship, reset angle to starting.      
+                self.resetShip()
+                shipDead = True
+            else:
+                shipDead = False
+
+            action = noop
+            time.sleep(.1)
+        elif self.round % 4 == 1:
+            if self.deadShip:          #if ship is dead, we cannot make a decision
+                action = noop
+            else:
+                action = self.findAimDecide(ob)
+                printAction(action) 
+            self.lastAction = action
+        elif self.round % 4 == 3:
+            action = noop
+
+
+        self.round += 1
+        return action
+
+
+    def resetShip(self):
         self.x = self.starting_x
         self.y = self.starting_y
         self.angle = self.starting_angle
-        self.stepsAwayFromRecharged = 0
-
-
-    # def act(self, ob, reward, done):
-    #     #if self.round % 3 == 0 or self.round % 3 == 1:
-    #     if self.round % 4 == 0:
-    #         decision = 0
-    #     elif self.round % 4 == 1:
-    #         decision = 3
-    #         self.adjustAngle(-1 * self.rotation_degree)
-    #     elif self.round % 4 == 2:
-    #         decision = 0
-    #     elif self.round % 4 == 3:
-    #         decision = 0
-    #
-    #     self.round += 1
-    #     time.sleep(1)
-    #     print(self.angle)
-    #     return decision
-
-
-    # You should modify this function
-    def act(self, observation, reward, done):
-        #print("is empty:", self.isEmpty(observation))
-        #print(self.angle)
-        # nAst = aNum(ob)
-        #print("asteroids", nAst)
-        #print("ship angle", self.angle)
-        if self.round % 4 == 0: #skip first round
-            decision = 0
-            time.sleep(.1)
-        elif self.round % 4 == 1:
-            decision = self.findAimDecide(observation)
-
-        elif self.round % 4 == 2:
-            decision = 0
-
-        elif self.round % 4 == 3:   #TODO: have an action here that is NOT the same as in 1
-            decision = self.findAimDecide(observation)
-             
-        if decision in self.fireList:
-            self.noCharge()
-        else: 
-            self.charge() 
-
-        self.round += 1
-        self.lastAction = decision
-        return decision
 
 
     def findAimDecide(self, ob):
         nearestA, minDist = self.findNearestAsteroid(ob)
         if nearestA[0] != None:
-            decision = self.makeDecision(nearestA, minDist)
+            action = self.makeDecision(nearestA, minDist)
             self.prevMinDist = minDist
             self.prevNearestA = nearestA
         else:
-            decision = self.makeDecision(self.prevNearestA, self.prevMinDist)
+            action = self.makeDecision(self.prevNearestA, self.prevMinDist)
        
-        if decision == self.lastAction:
-            decision = 0
+        if action == self.lastAction:
+            action = noop
+        elif action == clockwise or action == clockwiseFire:
+            self.adjustAngle(-1 * self.rotation_degree)
+        elif action == counterclockwise or action == counterclockwiseFire:
+            self.adjustAngle(self.rotation_degree)
 
-        return decision 
-
-
-    def spaceShipLocation(ob):
-        sumx = 0
-        sumy = 0
-        n = 0
-        for y in range(0, len(ob[0])):
-            for x in range(0, len(ob[1])):
-                if isSpaceShip(ob[y][x]):  #TODO: get rid of same color bullet
-                    sumy += 1
-                    sumx += 1
-                    n += 1
-        return (sumx/n,sumy/n)                
-
-
-
-
-    def isEmpty(self, ob):
-        for y in range(0, len(ob[0])):
-            for x in range(0, len(ob[1])):
-                if ob[y][x][0] != 0 or ob[y][x][1] != 0 or ob[y][x][2] != 0:
-                    return False
-        return True
-
-    def isRecharged(self):
-        if self.stepsAwayFromRecharged == 0:
-            return True
-        else: 
-            return False
-
-   
-    def noCharge(self):
-        self.stepsAwayFromRecharged = 2
-
-
-
-    def charge(self):
-        if self.stepsAwayFromRecharged > 0:
-            self.stepsAwayFromRecharged -= 1
-
-
+        return action 
 
 
     def makeDecision(self, nearestA, minDist):
         ax = nearestA[0] - self.x  # spaceship at origin
         ay = nearestA[1] - self.y  # spaceship at origin
-        if(ay == 0): return self.fire  #TODO: we have to deal with ay = 0 correctly
-        if(minDist > self.far):           #if closest asteroid is far away we just spinshoot
-            if self.isRecharged():
-                self.adjustAngle(-1 * self.rotation_degree)
-                return self.clockwiseFire
+        if(ay == 0): 
+            return fire 
+        elif(minDist > self.far):           #if closest asteroid is far away we just spinshoot
+            if self.lastAction != clockwiseFire and self.lastAction != fire:
+                return clockwiseFire
             else:
-                self.adjustAngle(-1 * self.rotation_degree)
-                return self.clockwise
+                return clockwise
         else:
             a_angle = findAngle(ax, ay)
-            print("angle:", a_angle)
-    
+            #print("asteroid angle:", a_angle)
             if (math.fabs((a_angle - self.angle)) < self.rotation_degree):
-                if self.isRecharged():
-                    return self.fire  # fire when we have to turn less than rotation angle to get a "perfect shot"
-                else:
-                    return 0
+                    return fire  # fire when we have to turn less than rotation angle to get a "perfect shot"
             else:
                 if ((self.angle - a_angle) < 0):
-                    self.adjustAngle(1 * self.rotation_degree)
-            #        print("counterclockwise")
-                    return self.counterclockwise
+                    return counterclockwise
                 else:
-                    self.adjustAngle(-1 * self.rotation_degree)
-            #        print("clockwise")
-                    return self.clockwise
+                    return clockwise
 
 
     def adjustAngle(self, adjustment):
@@ -219,8 +163,57 @@ class Agent(object):
         return (ax, ay), minDist
 
 
+
+
+def printAction(action):
+     if action == noop:
+         print("noop")
+     elif action == fire:
+         print("fire")
+     elif action == clockwise:
+         print("clockwise")
+     elif action == clockwiseFire:
+         print("clockwiseFire")
+     elif action == counterclockwise:
+         print("counterclockwise")
+
+
+
+def isShipDead(ob):
+     if findShip(ob) == (None, None):
+         return True
+     else: 
+         return False
+
+
+
+def findShip(ob):
+    sumx = 0
+    sumy = 0
+    n = 0
+    for y in range(0, len(ob[0])):
+        for x in range(0, len(ob[1])):
+            if isSpaceShip(ob[y][x]): 
+                sumy += y
+                sumx += x
+                n += 1
+    if n <= 2:   #died  
+        return (None, None)
+    else:
+        x = round(sumx/n)
+        y = round(sumy/n)
+        return (x, y)
+
+
+def isEmpty(self, ob):
+    for y in range(0, len(ob[0])):
+        for x in range(0, len(ob[1])):
+            if ob[y][x][0] != 0 or ob[y][x][1] != 0 or ob[y][x][2] != 0:
+                return False
+    return True
+
+
 def findAngle(ax, ay):
-    print("ax, ay", ax, ay)
     if (ax > 0 and ay > 0):  # the first quadrant
         a_angle = (180 * math.atan(ay/ax)) / math.pi
     elif (ax < 0 and ay > 0):
@@ -253,7 +246,7 @@ def isAsteroid(pixel):
 
 
 def isSpaceShip(pixel):
-    return containsRGB(pixel, shipRGB)   #includes the red bullet because same color as spaceship
+    return containsRGB(shipRGB, pixel)   #includes the red bullet because same color as spaceship
 
 
 def compareRGB(pixel1, pixel2):
