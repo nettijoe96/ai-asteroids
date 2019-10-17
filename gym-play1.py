@@ -29,7 +29,7 @@ clockwise = 3
 counterclockwise = 4
 clockwiseFire = 9
 counterclockwiseFire = 10
-fireList = [1, 9, 10]
+fireList = [fire, clockwiseFire, counterclockwiseFire]
 
 
 
@@ -45,7 +45,7 @@ class Agent(object):
     prevMinDist = None
     deadShip = False 
 
-    far = 100
+    spinDist = 100
 
     def __init__(self, action_space):
         self.resetShip()
@@ -57,11 +57,13 @@ class Agent(object):
         elif self.round % 4 == 0 or self.round % 4 == 2:      
             #print("ship angle:", self.angle) 
             if isShipDead(ob):         #if there is no ship, reset angle to starting.      
-                print("\n DEAD SHIP \n")
                 self.resetShip()
-                shipDead = True
+                self.deadShip = True
             else:
-                shipDead = False
+                coor = findShip(ob)
+                self.x = coor[0]
+                self.y = coor[1]
+                self.deadShip = False
 
             action = noop
             time.sleep(.5)
@@ -74,6 +76,8 @@ class Agent(object):
             self.lastAction = action
         elif self.round % 4 == 3:
             action = noop
+        else:
+            raise Exception("case not accounted for in act function")
 
 
         self.round += 1
@@ -108,8 +112,8 @@ class Agent(object):
     def makeDecision(self, nearestA, minDist):
         print(nearestA)
         ax = nearestA[0] - self.x  # spaceship at origin
-        ay = -1 * (nearestA[1] - self.y)  # spaceship at origin
-        if(minDist > self.far):           #if closest asteroid is far away we just spinshoot
+        ay = -1 * (nearestA[1] - self.y)  # spaceship at origin. -1 is needed otherwise asteroid is mirrored across x axis
+        if(minDist > self.spinDist):           #if closest asteroid is far away we just spinshoot
             if self.lastAction != clockwiseFire and self.lastAction != fire:
                 return clockwiseFire
             else:
@@ -175,7 +179,7 @@ def findAngleDiff(ship, ast):
     elif ship < ast:
         counterclockwiseAngle = ast - ship
         clockwiseAngle = 360 - counterclockwiseAngle
-    elif ship == ast:
+    else:
         counterclockwiseAngle = 0
         clockwiseAngle = 0
 
