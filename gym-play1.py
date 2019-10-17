@@ -8,13 +8,12 @@ from gym import wrappers, logger
 
 
 
-# shipRGB = [240,128,128]
-# shipRGB = [214, 214, 214]
+#colors
 shipRGB = [[240,128,128]]
 bulletCollors = [[117, 181, 239]]
-
 scoreRGB1 = [184, 50, 50]
 scoreRGB2 = [180, 50, 50]
+underBanner = 15
 scoreColors = list()
 scoreColors.append(scoreRGB1)
 scoreColors.append(scoreRGB2)
@@ -38,10 +37,9 @@ class Agent(object):
     starting_y = 105          # starting (x,y) coor of center of spaceship
     starting_angle = 90       # starting angle from vertical x-axis
     rotation_degree = 22.5    # each rotation action is 90 degrees divded by 4
-    lastAction = 0
-    shipScreen = False
-    round = 0
-    prevNearestA = None
+    lastAction = noop         # last action
+    round = 0                 # we need to know what round it is for determining the right frame
+    prevNearestA = None       
     prevMinDist = None
     deadShip = False
 
@@ -51,12 +49,20 @@ class Agent(object):
     def __init__(self, action_space):
         self.resetShip()
 
-    # You should modify this function
+
+    """
+    * main function for agent
+    * first round we skip. After that we make 1 action every 4 rounds. 
+    * 
+    * @param ob observation
+    * @param reward
+    * @param done
+    * @param action
+    """
     def act(self, ob, reward, done):
         if self.round == 0:            #there are 2 astroid-only frames in a row when game begins
             action = noop
         elif self.round % 4 == 0 or self.round % 4 == 2:      
-            #print("ship angle:", self.angle) 
             if isShipDead(ob):         #if there is no ship, reset angle to starting.      
                 self.resetShip()
                 self.deadShip = True
@@ -69,13 +75,13 @@ class Agent(object):
             action = noop
             time.sleep(.1)
         elif self.round % 4 == 1:
-            if self.deadShip:          #if ship is dead, we cannot make a decision
+            if self.deadShip:          #if ship is dead, we cannot make an action
                 action = noop
             else:
                 action = self.findAimDecide(ob)
                 printAction(action) 
             self.lastAction = action
-        elif self.round % 4 == 3:
+        elif self.round % 4 == 3:      # we do a noop here to ensure no actions are missed. 
             action = noop
         else:
             raise Exception("a case is not covered in act function")
@@ -84,13 +90,21 @@ class Agent(object):
         self.round += 1
         return action
 
-
+    """
+    * when we start and after ship dies we reset it to its initial position
+    """
     def resetShip(self):
         self.x = self.starting_x
         self.y = self.starting_y
         self.angle = self.starting_angle
 
 
+    """
+    * decide on an action finding the nearest asteroid
+    * 
+    * @param ob: observations
+    * @return action
+    """
     def findAimDecide(self, ob):
         nearestA, minDist = self.findNearestAsteroid(ob)
         if nearestA[0] != None:
@@ -151,7 +165,7 @@ class Agent(object):
         ax = None
         ay = None
 
-        for y in range(0, len(ob[0])):
+        for y in range(underBanner, len(ob[0])):
             rowMin = None
             for x in range(0, len(ob[1])):
                 pixel = ob[y][x]
@@ -240,7 +254,7 @@ def findShip(ob):
     sumx = 0
     sumy = 0
     n = 0
-    for y in range(0, len(ob[0])):
+    for y in range(15, len(ob[0])):
         for x in range(0, len(ob[1])):
             if isSpaceShip(ob[y][x]): 
                 sumy += y
@@ -252,14 +266,6 @@ def findShip(ob):
         x = round(sumx/n)
         y = round(sumy/n)
         return (x, y)
-
-
-def isEmpty(self, ob):
-    for y in range(0, len(ob[0])):
-        for x in range(0, len(ob[1])):
-            if ob[y][x][0] != 0 or ob[y][x][1] != 0 or ob[y][x][2] != 0:
-                return False
-    return True
 
 
 def findAngle(ax, ay):
@@ -290,7 +296,8 @@ def triangularDistance(x_distance, y_distance):
 
 
 def isAsteroid(pixel):
-    return (not containsRGB(shipRGB, pixel)) and (not containsRGB(scoreColors, pixel)) and (not compareRGB(emptyRGB, pixel)) #TODO: add blue bullet
+    #return (not containsRGB(shipRGB, pixel)) and (not containsRGB(scoreColors, pixel)) and (not compareRGB(emptyRGB, pixel))
+    return (not containsRGB(shipRGB, pixel)) and (not compareRGB(emptyRGB, pixel))
 
 
 
@@ -323,8 +330,6 @@ def aNum(ob):
     return aCount
 
 
-
-testAngle()
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
