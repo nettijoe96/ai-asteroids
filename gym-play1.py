@@ -60,9 +60,6 @@ class Agent(object):
                 self.resetShip()
                 self.deadShip = True
             else:
-                coor = findShip(ob)
-                self.x = coor[0]
-                self.y = coor[1]
                 self.deadShip = False
 
             action = noop
