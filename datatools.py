@@ -2,7 +2,16 @@ class DataFile:
 
     def __init__(self, file_name):
         self.file_name = file_name
-        
+      
+    """
+    Writes data about pixels into a new text file.
+    
+    Each frame is given an ID, and is given a pixel count for its 
+    heading. Under each frame, a list of the counted pixels appears with
+    information about locations and colors (if this information is 
+    provided)
+ 
+    """
     def save_count_to_file(self, frame_count, pixel_count, pixels = None, locations = None):
         
         full_pixel_list = list()
@@ -27,7 +36,10 @@ class DataFile:
                 for pixel in full_pixel_list:
                     count_file.write("\t{}\n".format(pixel.str()))
           
-          
+
+"""
+The location and color of a single pixel.
+"""     
 class Pixel:
     
     def __init__(self, x, y, r, g, b):
