@@ -108,7 +108,7 @@ results += [6640 for i in range (0, 21)]
 #histogram(results, 130)
 
 fig, ax = plt.subplots()
-N, bins, patches = ax.hist(results, 130, edgecolor='white', linewidth=1)
+N, bins, patches = ax.hist(results, 130, edgecolor='white', label="Random Agent", linewidth=1)
 
 
 for i in range(0, len(patches)):
@@ -118,6 +118,12 @@ for i in range(0, len(patches)):
 patches[-1].set_facecolor('black')
 patches[37].set_facecolor('green')
 patches[26].set_facecolor('red')
+
+patches[-1].set_label('SpinAim Agent')
+patches[37].set_label('SpinAimDodge Agent')
+patches[26].set_label('Spin Agent')
+
+ax.legend()
 
 plt.title("Score distribution for agents")
 plt.xlabel("Score")
