@@ -7,19 +7,23 @@ from gym import wrappers, logger
 from common import *
 
 class Agent(object):
-    """The world's simplest agent!"""
+    r = 0
+
+
     def __init__(self, action_space):
         self.action_space = action_space
-        self.lastAction = clockwise
 
     # You should modify this function
     def act(self, observation, reward, done):
-        if self.lastAction == clockwise:
-            self.lastAction = clockwiseFire
-            return clockwiseFire
+        if self.r % 4 == 1:
+            action = clockwiseFire
+        elif self.r % 4 == 3:
+            action = clockwise
         else:
-            self.lastAction = clockwise
-            return clockwise
+            action = noop
+        
+        self.r += 1
+        return action
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
