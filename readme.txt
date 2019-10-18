@@ -10,11 +10,16 @@ Contents:
     common-test.py 
     datatools
     ship-pixel-count.py
+  Data Collection:
+    hundred_trial_data
+    histogram.py
 
-Instructions:
+Agent Instructions:
   To run any of the agents, use the following command:
     python [agent file name]
 
+
+Development Resource Instructions:
   To run the unit test suite, use the following command:
     python common-test.py
 
@@ -36,4 +41,13 @@ Instructions:
     
   This will produce text files of the following naming format:
     ship_count_YYMMDD_HHMMSS.txt
+
+Data Collection Instructions
+  To build the histogram for the collected data, run the following command:
+    python histogram.py 
+ 
+  Note: Matplotlib must be installed to run histogram.py
+
+
+
     
