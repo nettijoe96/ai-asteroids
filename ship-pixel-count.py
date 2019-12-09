@@ -1,24 +1,42 @@
+"""
+A module that counts the number of astroid pixels on screen
+"""
+
 import argparse
 import sys
 import pdb
 import gym
 import time
+import datetime
+import datatools
+from datatools import DataFile 
 from gym import wrappers, logger
+import common
 
 class Agent(object):
     """The world's simplest agent!"""
     def __init__(self, action_space):
         self.action_space = action_space
+        self.frame_count = 0
+        timestamp = datetime.datetime.today().strftime("ship_count_%y%m%d_%H%M%S.txt")
+        self.file = DataFile(timestamp)
 
     # You should modify this function
     def act(self, observation, reward, done):
-        return self.action_space.sample()
+        self.frame_count += 1
+        
+        pixel_count, pixels, locations = datatools.countPixels(observation ,common.isSpaceShip)
+        
+        self.file.save_count_to_file(self.frame_count, pixel_count, pixels, locations)
+        
+        return 0
+ 
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
-if __name__ == '__main__':
+if(__name__ == '__main__'):
     parser = argparse.ArgumentParser(description=None)
-    parser.add_argument('--env_id', nargs='?', default='Asteroids-v0', help='Select the environment to run')
+    parser.add_argument('--env_id', nargs='?', default='AsteroidsNoFrameskip-v4', help='Select the environment to run')
     args = parser.parse_args()
 
     # You can set the level to logger.DEBUG or logger.WARN if you
@@ -45,12 +63,18 @@ if __name__ == '__main__':
     special_data = {}
     special_data['ale.lives'] = 3
     ob = env.reset()
+    
+    actlist = [3, 9]
+    i = 0
+
     while not done:
         
         action = agent.act(ob, reward, done)
         ob, reward, done, x = env.step(action)
+        i+=1
+        i = i % len(actlist) 
         #pdb.set_trace()
-        time.sleep(0.1)
+        #time.sleep(0.1)
         score += reward
         env.render()
      
